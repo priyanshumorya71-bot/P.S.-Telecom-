@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P.S. Telicom - Wholesale</title>
+<style>
+:root{
+  --blue:#2874f0;
+  --red:#e53935;
+  --bg:#f5f6fa;
+}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);}
+header{
+  background:#fff;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;position:sticky;top:0;z-index:10;border-bottom:1px solid #ccc;
+}
+header .title{font-size:28px;font-weight:bold;color:var(--blue);}
+header input{width:40%;padding:10px;border-radius:8px;border:1px solid #bbb;}
+header .cart-btn{background:var(--blue);color:#fff;padding:10px 18px;border-radius:8px;cursor:pointer;position:relative;font-weight:bold;}
+
+.categories{
+  display:grid;
+  grid-template-columns:repeat(3,1fr); /* 3 per row */
+  gap:12px;
+  padding:16px;
+  justify-items:center;
+}
+.category{background:#fff;border-radius:12px;padding:10px;text-align:center;cursor:pointer;border:1px solid #ddd;}
+.category img{width:100px;height:100px;object-fit:cover;border-radius:12px;}
+.category span{display:block;margin-top:6px;font-weight:bold;}
+
+.products{
+  display:grid;
+  grid-template-columns:repeat(2,1fr); /* 2 products per row */
+  gap:16px;
+  padding:16px;
+}
+.product{background:#fff;padding:10px;border-radius:12px;position:relative;}
+.product img{width:100%;height:150px;object-fit:cover;border-radius:12px;} 
+.product h3{margin:6px 0 4px 0;font-size:15px;}
+.product b{display:block;margin-bottom:6px;}
+.out{opacity:0.5;pointer-events:none;}
+.badge{background:var(--red);color:#fff;padding:4px 6px;font-size:12px;border-radius:6px;position:absolute;top:6px;left:6px;}
+
+.qty-row{display:flex;align-items:center;margin-top:4px;}
+.qty-row button{width:28px;height:28px;margin:0 4px;font-size:16px}
+
+/* CART FULLSCREEN POPUP */
+#cartPopup{
+  display:none;
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.6);
+  z-index:100;display:flex;align-items:center;justify-content:center;
+}
+#cartContent{
+  background:#fff;width:90%;height:90%;border-radius:12px;overflow-y:auto;padding:16px;
+  position:relative;
+}
+#cartContent .closeBtn{position:absolute;top:12px;right:12px;background:var(--red);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;}
+.cart-item{display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;padding:8px 0;}
+.cart-item img{width:70px;height:50px;object-fit:cover;border-radius:6px;}
+.cart-item-info{flex:1;}
+.cart-item-info div{margin:2px 0;}
+.warning{text-align:center;color:var(--red);font-weight:bold;display:none;margin-top:10px;}
+button.whatsapp-btn{width:100%;padding:12px;margin-top:10px;background:#25d366;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:16px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">P.S. Telicom</div>
+  <input id="search" placeholder="Search..." onkeyup="filterProducts()">
+  <div class="cart-btn" onclick="openCart()">Cart 🛒 <span id="cartCount">0</span></div>
+</header>
+
+<p style="text-align:center;color:#444;margin:10px 0;font-weight:bold;">Minimum Order ₹5,000</p>
+
+<!-- Categories -->
+<div class="categories" id="catBox"></div>
+
+<!-- Products -->
+<div class="products" id="productBox"></div>
+
+<!-- Cart Fullscreen Popup -->
+<div id="cartPopup">
+  <div id="cartContent">
+    <button class="closeBtn" onclick="closeCart()">Close ✖</button>
+    <h3>Cart Items</h3>
+    <div id="cartItems"></div>
+    <div id="cartTotal" style="font-weight:bold;margin-top:10px;">Total: ₹0</div>
+    <p class="warning" id="warn">Minimum Order ₹5000 Required!</p>
+    <button class="whatsapp-btn" onclick="sendOrder()">Send Order via WhatsApp</button>
+  </div>
+</div>
+
+<!-- Simple Login -->
+<div id="loginModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:20px;border-radius:10px;width:300px;">
+    <h3>Login</h3>
+    <input id="nameInput" placeholder="Your Name" style="width:100%;padding:8px;margin:6px 0;">
+    <input id="phoneInput" placeholder="Phone (91XXXXXXXXXX)" style="width:100%;padding:8px;margin:6px 0;">
+    <div style="text-align:right;margin-top:10px;">
+      <button onclick="closeLogin()">Cancel</button>
+      <button onclick="saveLogin()">Login</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Categories
+const categories=[
+  {name:"Adapter",img:"https://via.placeholder.com/100"},
+  {name:"Cable",img:"https://via.placeholder.com/100"},
+  {name:"Earbuds",img:"https://via.placeholder.com/100"},
+  {name:"Speakers",img:"https://via.placeholder.com/100"},
+  {name:"Battery",img:"https://via.placeholder.com/100"},
+  {name:"Charger",img:"https://via.placeholder.com/100"},
+  {name:"Smartwatch",img:"https://via.placeholder.com/100"},
+  {name:"Covers",img:"https://via.placeholder.com/100"},
+  {name:"OTG",img:"https://via.placeholder.com/100"},
+  {name:"Others",img:"https://via.placeholder.com/100"},
+];
+
+let products=[
+  {id:1,name:"Samsung Adapter",price:60,stock:true,img:"https://via.placeholder.com/250",category:"Adapter"},
+  {id:2,name:"Pannu Earbuds",price:150,stock:true,img:"https://via.placeholder.com/250",category:"Earbuds"},
+  {id:3,name:"USB Speaker",price:49,stock:false,img:"https://via.placeholder.com/250",category:"Speakers"},
+  {id:4,name:"6A Cable",price:12,stock:true,img:"https://via.placeholder.com/250",category:"Cable"},
+  {id:5,name:"Nokia Battery",price:50,stock:true,img:"https://via.placeholder.com/250",category:"Battery"},
+  {id:6,name:"AirPods Pro",price:15000,stock:true,img:"https://via.placeholder.com/250",category:"Earbuds"},
+];
+
+let cart={},user=null;
+
+// Render Categories
+const catBox=document.getElementById("catBox");
+categories.forEach(c=>{
+  let div=document.createElement("div");
+  div.className="category";
+  div.innerHTML=`<img src="${c.img}"><span>${c.name}</span>`;
+  div.onclick=()=> filterCategory(c.name);
+  catBox.appendChild(div);
+});
+
+// Render Products
+function renderProducts(filter="All"){
+  const container=document.getElementById("productBox");
+  container.innerHTML="";
+  products.forEach(p=>{
+    if(filter!=="All" && p.category!==filter) return;
+    let qty=cart[p.id]?.qty||0;
+    const div=document.createElement("div");
+    div.className="product"+(!p.stock?" out":"");
+    div.innerHTML=`
+      <img src="${p.img}">
+      <h3>${p.name}</h3>
+      <b>₹${p.price}</b>
+      ${!p.stock?'<div class="badge">OUT OF STOCK</div>':`
+      <div class="qty-row">
+        <button onclick="dec(${p.id})">-</button>
+        <span>${qty}</span>
+        <button onclick="inc(${p.id})">+</button>
+      </div>`}`;
+    container.appendChild(div);
+  });
+}
+renderProducts();
+
+// Search
+function filterProducts(){
+  const q=document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll(".product").forEach(p=>{
+    p.style.display=p.innerText.toLowerCase().includes(q)?"block":"none";
+  });
+}
+
+// Category filter
+function filterCategory(cat){
+  renderProducts(cat);
+}
+
+// Cart functions
+function inc(id){
+  const p=products.find(x=>x.id===id);
+  if(!cart[id]) cart[id]={name:p.name,price:p.price,qty:1,img:p.img};
+  else cart[id].qty++;
+  updateCart();
+  renderProducts();
+}
+function dec(id){
+  if(cart[id]){
+    cart[id].qty--;
+    if(cart[id].qty<=0) delete cart[id];
+    updateCart();
+    renderProducts();
+  }
+}
+
+// Update Cart popup
+function updateCart(){
+  const cartItems=document.getElementById("cartItems");
+  cartItems.innerHTML="";
+  let total=0,count=0;
+  for(let id in cart){
+    let i=cart[id];
+    total+=i.qty*i.price;
+    count+=i.qty;
+    cartItems.innerHTML+=`
+      <div class="cart-item">
+        <img src="${i.img}">
+        <div class="cart-item-info">
+          <div>${i.name}</div>
+          <div>₹${i.price} x ${i.qty}</div>
+          <div class="qty-row">
+            <button onclick="dec(${id})">-</button>
+            <span>${i.qty}</span>
+            <button onclick="inc(${id})">+</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  document.getElementById("cartCount").innerText=count;
+  document.getElementById("cartTotal").innerText="Total: ₹"+total;
+  document.getElementById("warn").style.display=total<5000?"block":"none";
+}
+
+// Open / Close Cart
+function openCart(){ updateCart(); document.getElementById("cartPopup").style.display="flex"; }
+function closeCart(){ document.getElementById("cartPopup").style.display="none"; }
+
+// WhatsApp Order
+function sendOrder(){
+  if(!user){ alert("Please login first!"); openLogin(); return; }
+  let total=0,msg=`*P.S. Telicom Order*\nCustomer: ${user.name}\nPhone: ${user.phone}\n\n`;
+  for(let id in cart){
+    let i=cart[id];
+    msg+=`${i.name} - Qty: ${i.qty}\n`;
+    total+=i.price*i.qty;
+  }
+  msg+=`\nTotal: ₹${total}`;
+  if(total<5000){ alert("Minimum order ₹5000 required!"); return; }
+  let number="91XXXXXXXXXX"; // Replace with your WhatsApp number
+  window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`,"_blank");
+}
+
+// Simple Login
+function openLogin(){ document.getElementById("loginModal").style.display="flex"; }
+function closeLogin(){ document.getElementById("loginModal").style.display="none"; }
+function saveLogin(){
+  const name=document.getElementById("nameInput").value.trim();
+  const phone=document.getElementById("phoneInput").value.trim();
+  if(!name||!phone){ alert("Both required"); return; }
+  user={name,phone};
+  localStorage.setItem("ps_user",JSON.stringify(user));
+  closeLogin();
+}
+window.onload=()=>{
+  const u=JSON.parse(localStorage.getItem("ps_user")||"null");
+  if(u) user=u;
+};
+</script>
+
+</body>
+</html>
