@@ -8,6 +8,7 @@
 :root{
   --blue:#2874f0;
   --red:#e53935;
+  --green:#4caf50;
   --bg:#f5f6fa;
 }
 body{margin:0;font-family:Arial,sans-serif;background:var(--bg);}
@@ -39,29 +40,39 @@ header .cart-btn{background:var(--blue);color:#fff;padding:10px 18px;border-radi
 .product{background:#fff;padding:10px;border-radius:12px;position:relative;}
 .product img{width:100%;height:150px;object-fit:cover;border-radius:12px;} 
 .product h3{margin:6px 0 4px 0;font-size:15px;}
-.product b{display:block;margin-bottom:6px;}
+.product b{display:block;margin-bottom:6px;color:var(--green);}
 .out{opacity:0.5;pointer-events:none;}
 .badge{background:var(--red);color:#fff;padding:4px 6px;font-size:12px;border-radius:6px;position:absolute;top:6px;left:6px;}
+.min-badge{background:#ff9800;color:#fff;padding:4px 6px;font-size:12px;border-radius:6px;position:absolute;top:6px;right:6px;}
 
-.qty-row{display:flex;align-items:center;margin-top:4px;}
-.qty-row button{width:28px;height:28px;margin:0 4px;font-size:16px}
+.qty-row{display:flex;align-items:center;margin-top:8px;gap:8px;}
+.qty-row button{width:32px;height:32px;font-size:16px;border:none;border-radius:6px;background:var(--blue);color:#fff;cursor:pointer;}
+.qty-row .qty-display{min-width:40px;text-align:center;font-weight:bold;color:var(--blue);}
+.cart-qty{background:var(--green);color:#fff;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:bold;margin-left:4px;}
 
 /* CART FULLSCREEN POPUP */
 #cartPopup{
   display:none;
   position:fixed;top:0;left:0;width:100%;height:100%;
   background:rgba(0,0,0,0.6);
-  z-index:100;display:flex;align-items:center;justify-content:center;
+  z-index:100;
 }
 #cartContent{
   background:#fff;width:90%;height:90%;border-radius:12px;overflow-y:auto;padding:16px;
   position:relative;
+  margin:20px auto;
 }
 #cartContent .closeBtn{position:absolute;top:12px;right:12px;background:var(--red);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;}
-.cart-item{display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;padding:8px 0;}
-.cart-item img{width:70px;height:50px;object-fit:cover;border-radius:6px;}
+.cart-item{display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;padding:12px 0;}
+.cart-item img{width:70px;height:70px;object-fit:cover;border-radius:6px;}
 .cart-item-info{flex:1;}
-.cart-item-info div{margin:2px 0;}
+.cart-item-info .name{font-weight:bold;margin-bottom:4px;}
+.cart-item-info .price{color:var(--green);margin-bottom:6px;}
+.cart-qty-row{display:flex;align-items:center;gap:8px;}
+.cart-qty-row button{width:28px;height:28px;font-size:14px;border:none;border-radius:4px;background:var(--blue);color:#fff;cursor:pointer;}
+.cart-qty-row .remove-btn{background:var(--red);}
+.cart-qty-row input{width:50px;height:28px;text-align:center;border:1px solid #ccc;border-radius:4px;font-size:14px;}
+.cart-item-info .min-warn{color:var(--red);font-size:12px;margin-top:4px;display:none;}
 .warning{text-align:center;color:var(--red);font-weight:bold;display:none;margin-top:10px;}
 button.whatsapp-btn{width:100%;padding:12px;margin-top:10px;background:#25d366;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:16px;}
 </style>
@@ -123,12 +134,16 @@ const categories=[
 ];
 
 let products=[
-  {id:1,name:"Samsung Adapter",price:60,stock:true,img:"https://via.placeholder.com/250",category:"Adapter"},
-  {id:2,name:"Pannu Earbuds",price:150,stock:true,img:"https://via.placeholder.com/250",category:"Earbuds"},
-  {id:3,name:"USB Speaker",price:49,stock:false,img:"https://via.placeholder.com/250",category:"Speakers"},
-  {id:4,name:"6A Cable",price:12,stock:true,img:"https://via.placeholder.com/250",category:"Cable"},
-  {id:5,name:"Nokia Battery",price:50,stock:true,img:"https://via.placeholder.com/250",category:"Battery"},
-  {id:6,name:"AirPods Pro",price:15000,stock:true,img:"https://via.placeholder.com/250",category:"Earbuds"},
+  {id:1,name:"Samsung travel adapter",price:60,stock:true,min:5,category:"adapter",img:"https://i.ibb.co/HTVKLGy8/Screenshot-2025-1204-080242-com-whatsapp-w4b.png"},
+  {id:2,name:"Data cable 6a ,v8",price:12,stock:true,min:12,category:"cable",img:"https://i.ibb.co/prvZD2S5/Screenshot-2025-1204-080252-com-whatsapp-w4b.png"},
+  {id:3,name:"Pannu 7 hour airbuds",price:150,stock:true,min:1,category:"airpods",img:"https://i.ibb.co/whfQGhHc/Screenshot-2025-1204-080299-com-whatsapp-w4b.png"},
+  {id:4,name:"Bestie airbuds",price:210,min:1,stock:true,category:"airpods",img:"https://i.ibb.co/bgTDt4hV/Screenshot-2025-1204-080306-com-whatsapp-w4b.png"},
+  {id:5,name:"pubg sleeps",price:3,min:100,stock:true,category:"other",img:"https://i.ibb.co/LbgLHzG/Screenshot-2025-1204-080313-com-whatsapp-w4b.png"},
+  {id:6,name:"Earphones",price:13,min:20,stock:true,category:"earphone",img:"https://i.ibb.co/gML9NjLc/Screenshot-2025-1204-080320-com-whatsapp-w4b.png"},
+  {id:7,name:"Nokia battery",price:50,stock:true,min:1,category:"other",img:"https://i.ibb.co/0j9pKqP2/Screenshot-2025-1204-080326-com-whatsapp-w4b.png"},
+  {id:8,name:"Peramid Mobile stand",price:2.5,stock:true,min:50,category:"other",img:"https://i.ibb.co/XrfNh0vz/Screenshot-2025-1204-080332-com-whatsapp-w4b.png"},
+  {id:9,name:"Earphones",price:20,stock:true,min:1,category:"earphone",img:"https://i.ibb.co/6RWCY968/Screenshot-2025-1204-080342-com-whatsapp-w4b.png"},
+  {id:10,name:"Pannu bluetooth neckband pibt 8001",price:100,stock:true,min:1,category:"earphone",img:"https://i.ibb.co/qYYk7Hch/Screenshot-2025-1204-080349-com-whatsapp-w4b.png"},
 ];
 
 let cart={},user=null;
@@ -154,13 +169,14 @@ function renderProducts(filter="All"){
     div.className="product"+(!p.stock?" out":"");
     div.innerHTML=`
       <img src="${p.img}">
+      ${p.min>1?`<div class="min-badge">Min: ${p.min}</div>`:''}
       <h3>${p.name}</h3>
       <b>₹${p.price}</b>
       ${!p.stock?'<div class="badge">OUT OF STOCK</div>':`
       <div class="qty-row">
-        <button onclick="dec(${p.id})">-</button>
-        <span>${qty}</span>
-        <button onclick="inc(${p.id})">+</button>
+        <button onclick="removeFromCart(${p.id})">-</button>
+        <span class="qty-display">${qty>0?qty+' <span class="cart-qty">in cart</span>':''}</span>
+        <button onclick="addToCart(${p.id})">+</button>
       </div>`}`;
     container.appendChild(div);
   });
@@ -180,18 +196,27 @@ function filterCategory(cat){
   renderProducts(cat);
 }
 
-// Cart functions
-function inc(id){
+// Cart functions - Simple add/remove
+function addToCart(id){
   const p=products.find(x=>x.id===id);
-  if(!cart[id]) cart[id]={name:p.name,price:p.price,qty:1,img:p.img};
-  else cart[id].qty++;
+  if(!p.stock) return;
+  
+  if(!cart[id]){
+    // First time adding to cart - add minimum quantity
+    cart[id]={name:p.name,price:p.price,qty:p.min,img:p.img,min:p.min};
+  }else{
+    // Already in cart - increase by 1
+    cart[id].qty++;
+  }
+  
   updateCart();
   renderProducts();
 }
-function dec(id){
+
+function removeFromCart(id){
   if(cart[id]){
-    cart[id].qty--;
-    if(cart[id].qty<=0) delete cart[id];
+    // Remove item completely from cart
+    delete cart[id];
     updateCart();
     renderProducts();
   }
@@ -202,46 +227,97 @@ function updateCart(){
   const cartItems=document.getElementById("cartItems");
   cartItems.innerHTML="";
   let total=0,count=0;
+  
   for(let id in cart){
     let i=cart[id];
     total+=i.qty*i.price;
     count+=i.qty;
+    
     cartItems.innerHTML+=`
       <div class="cart-item">
         <img src="${i.img}">
         <div class="cart-item-info">
-          <div>${i.name}</div>
-          <div>₹${i.price} x ${i.qty}</div>
-          <div class="qty-row">
-            <button onclick="dec(${id})">-</button>
-            <span>${i.qty}</span>
-            <button onclick="inc(${id})">+</button>
+          <div class="name">${i.name}</div>
+          <div class="price">₹${i.price} per piece</div>
+          <div class="cart-qty-row">
+            <button class="remove-btn" onclick="removeFromCart(${id})">✖</button>
+            <input type="number" min="${i.min}" value="${i.qty}" id="cart-qty-${id}" onchange="updateCartItem(${id}, this.value)">
+            <button onclick="addToCart(${id})">+</button>
           </div>
+          <div>Subtotal: ₹${i.qty*i.price}</div>
         </div>
       </div>`;
   }
+  
   document.getElementById("cartCount").innerText=count;
   document.getElementById("cartTotal").innerText="Total: ₹"+total;
   document.getElementById("warn").style.display=total<5000?"block":"none";
 }
 
+// Update cart item quantity from input
+function updateCartItem(id,newQty){
+  newQty=parseInt(newQty)||0;
+  const p=products.find(x=>x.id===id);
+  
+  if(newQty < p.min){
+    alert(`Minimum quantity is ${p.min} for ${p.name}`);
+    newQty = p.min;
+  }
+  
+  if(newQty <= 0){
+    delete cart[id];
+  }else{
+    cart[id].qty = newQty;
+  }
+  
+  updateCart();
+  renderProducts();
+}
+
 // Open / Close Cart
-function openCart(){ updateCart(); document.getElementById("cartPopup").style.display="flex"; }
-function closeCart(){ document.getElementById("cartPopup").style.display="none"; }
+function openCart(){ 
+  updateCart(); 
+  document.getElementById("cartPopup").style.display="flex"; 
+}
+function closeCart(){ 
+  document.getElementById("cartPopup").style.display="none"; 
+}
 
 // WhatsApp Order
 function sendOrder(){
   if(!user){ alert("Please login first!"); openLogin(); return; }
-  let total=0,msg=`*P.S. Telicom Order*\nCustomer: ${user.name}\nPhone: ${user.phone}\n\n`;
+  
+  let total=0;
+  let msg=`*P.S. Telicom Order*\n\n`;
+  msg+=`*Customer Details:*\n`;
+  msg+=`Name: ${user.name}\n`;
+  msg+=`Phone: ${user.phone}\n\n`;
+  msg+=`*Order Items:*\n`;
+  
   for(let id in cart){
     let i=cart[id];
-    msg+=`${i.name} - Qty: ${i.qty}\n`;
+    msg+=`\n📦 ${i.name}\n`;
+    msg+=`   Quantity: ${i.qty}\n`;
+    msg+=`   Price: ₹${i.price} per piece\n`;
+    msg+=`   Subtotal: ₹${i.qty*i.price}\n`;
     total+=i.price*i.qty;
   }
-  msg+=`\nTotal: ₹${total}`;
-  if(total<5000){ alert("Minimum order ₹5000 required!"); return; }
-  let number="91XXXXXXXXXX"; // Replace with your WhatsApp number
-  window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`,"_blank");
+  
+  msg+=`\n*Order Summary:*\n`;
+  msg+=`Total Items: ${Object.keys(cart).length}\n`;
+  msg+=`Total Quantity: ${Object.values(cart).reduce((sum,item)=>sum+item.qty,0)}\n`;
+  msg+=`*Grand Total: ₹${total}*\n\n`;
+  msg+=`_Images of products are attached_\n`;
+  msg+=`_Minimum order requirement: ₹5000_`;
+  
+  if(total<5000){ 
+    alert("Minimum order ₹5000 required!"); 
+    return; 
+  }
+  
+  let number="917643806356"; // Replace with your WhatsApp number
+  let whatsappUrl=`https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
+  window.open(whatsappUrl,"_blank");
 }
 
 // Simple Login
@@ -255,6 +331,7 @@ function saveLogin(){
   localStorage.setItem("ps_user",JSON.stringify(user));
   closeLogin();
 }
+
 window.onload=()=>{
   const u=JSON.parse(localStorage.getItem("ps_user")||"null");
   if(u) user=u;
